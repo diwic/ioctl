@@ -115,6 +115,20 @@ macro_rules! ioctl {
             )
         }
     };
+    (read0 $name:ident with $ioty:expr, $nr:expr; $ty:ty) => {
+        pub unsafe fn $name(fd: ::std::os::raw::c_int) -> std::result::Result<$ty, ()> {
+            let mut val: $ty = std::mem::zeroed(); 
+            if $crate::ioctl(
+                fd,
+                $crate::ior!($ioty, $nr, ::std::mem::size_of::<$ty>()) as ::std::os::raw::c_ulong,
+                &mut val as *mut $ty,
+            ) == -1 {
+                Err(())
+            } else {
+                Ok(val)
+            }
+        }
+    };
     (write $name:ident with $ioty:expr, $nr:expr; $ty:ty) => {
         pub unsafe fn $name(fd: ::std::os::raw::c_int, val: *const $ty) -> ::std::os::raw::c_int {
             $crate::ioctl(
